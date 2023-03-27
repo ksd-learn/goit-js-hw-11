@@ -4,7 +4,7 @@ import { Notify } from 'notiflix/build/notiflix-notify-aio';
 function requestAxios(url, options) {
     return axios(url, options)
                 .then(response => {
-                    numberResults = response.data.total_results;
+                    let numberResults = response.data.total_results;
                     if (!numberResults) {
                         Notify.failure('Sorry, there are no images matching your search query. Please try again.');
                     } else {
