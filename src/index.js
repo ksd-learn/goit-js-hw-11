@@ -48,7 +48,6 @@ function queryPexels(event) {
 
     request.requestAxios(url, options)
       .then(data => {
-        console.log(data);
           numberResults = data.total_results;
           form.insertAdjacentHTML('beforeend',
             `<p class="search-form__info">Hooray! We found ${numberResults} images.</p>`
