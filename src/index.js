@@ -2,7 +2,7 @@ import SimpleLightbox from "simplelightbox";
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import photoCard from './js/create-photo-card';
 import request from './js/request';
-import API from './js/api-pexels';
+import API from './js/api-service';
 
 const form = document.querySelector('#search-form');
 const input = document.querySelector('.search-form__input');
@@ -11,18 +11,17 @@ const nextPage = document.querySelector('.next-page')
 const btnNextPage = document.querySelector('.load-more');
 
 let page = 1;
-let queryValue = '';
-let numberResults = 0;
+let perPage = 40;
+let queryValue = '';            // текст, по которому идет поиск
+let numberResults = 0;          // кол-во результатов
+let galleryCard = '';           // отображаемые карточки галереи 
 
 function queryPexels(event) {
   event.preventDefault();
-  gallery.innerHTML = '';
   nextPage.style.display = 'none';
   btnNextPage.style.display = 'inline-block';
   let infoNumberResults = document.querySelector('.search-form__info');
   let infoPage = document.querySelector('.next-page__info')
-  let perPage = 40;
-  
   let inputSearch = input.value.trim();
             // Вариант. выборка из всех элементов (полей) формы значения поля с name='searchQuery'
                 //const {
@@ -40,24 +39,30 @@ function queryPexels(event) {
     queryValue = inputSearch;
     page = 1;
     numberResults = 0;
+    galleryCard = '';
+    gallery.innerHTML = galleryCard;
   }
   if (queryValue) {
-    let apiService = API.apiPexels(queryValue, perPage, page);
+    let apiService = API.apiPixabay(queryValue, perPage, page);
     let url = apiService.url;
     let options = apiService.options;
 
     request.requestAxios(url, options)
       .then(data => {
-          numberResults = data.total_results;
+          numberResults = data.total;
           form.insertAdjacentHTML('beforeend',
             `<p class="search-form__info">Hooray! We found ${numberResults} images.</p>`
           )
-          return data.photos
+          return data.hits
         })
-      .then(photos => photos.map(photo => photoCard.createPhotoCard(photo)).join(''))
-      .then(element => {
-          const lightbox = new SimpleLightbox('.gallery a', { captionsData: 'alt' });
-          gallery.innerHTML = element;
+      .then(photos => {
+        let galleryC = photos.map(photo => photoCard.cardForPixabayService(photo)).join('');
+        galleryCard = galleryCard + galleryC;
+        return galleryCard
+      })
+      .then(() => {
+        gallery.innerHTML = galleryCard;
+        const lightbox = new SimpleLightbox('.gallery a', { captionsData: 'alt' });
         })
       .then(() => {
           nextPage.insertAdjacentHTML('beforeend',
@@ -75,9 +80,12 @@ function queryPexels(event) {
   }
 }
 
+gallery.innerHTML = galleryCard;
 form.addEventListener('submit', (event) => {
-        page = 1;
-        queryPexels(event)
+    page = 1;
+    galleryCard = '';
+    gallery.innerHTML = galleryCard;
+    queryPexels(event)
     })
 btnNextPage.addEventListener('click', queryPexels)
 
