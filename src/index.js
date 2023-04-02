@@ -14,7 +14,6 @@ let page = 1;
 let perPage = 40;
 let queryValue = '';            // текст, по которому идет поиск
 let numberResults = 0;          // кол-во результатов
-let galleryCard = '';           // отображаемые карточки галереи 
 
 function queryPexels(event) {
   event.preventDefault();
@@ -39,8 +38,7 @@ function queryPexels(event) {
     queryValue = inputSearch;
     page = 1;
     numberResults = 0;
-    galleryCard = '';
-    gallery.innerHTML = galleryCard;
+    gallery.innerHTML = '';
   }
   if (queryValue) {
     let apiService = API.apiPixabay(queryValue, perPage, page);
@@ -55,14 +53,10 @@ function queryPexels(event) {
           )
           return data.hits
         })
-      .then(photos => {
-        let galleryC = photos.map(photo => photoCard.cardForPixabayService(photo)).join('');
-        galleryCard = galleryCard + galleryC;
-        return galleryCard
-      })
-      .then(() => {
-        gallery.innerHTML = galleryCard;
-        const lightbox = new SimpleLightbox('.gallery a', { captionsData: 'alt' });
+      .then(photos => photos.map(photo => photoCard.cardForPixabayService(photo)).join(''))
+      .then(photosPage => {
+        gallery.insertAdjacentHTML('beforeend', photosPage);
+        lightbox.refresh();
         })
       .then(() => {
           nextPage.insertAdjacentHTML('beforeend',
@@ -80,11 +74,10 @@ function queryPexels(event) {
   }
 }
 
-gallery.innerHTML = galleryCard;
+let lightbox = new SimpleLightbox('.gallery a', { captionsData: 'alt' });
 form.addEventListener('submit', (event) => {
     page = 1;
-    galleryCard = '';
-    gallery.innerHTML = galleryCard;
+    gallery.innerHTML = '';
     queryPexels(event)
     })
 btnNextPage.addEventListener('click', queryPexels)
